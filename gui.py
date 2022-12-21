@@ -168,8 +168,8 @@ Q: close current game\nEsc: close all games\nI: open help menu")
             win2.title("Undo")
             undolabel = Label(win2, text="Enter number of steps")
             steps = Entry(win2)
-            undolabel.grid()
-            steps.grid()
+            undolabel.grid(padx=40, pady=10)
+            steps.grid(padx=40, pady=10)
 
             # go back by entered number of steps - changes highscore, matrix, previous matrices
             def undo():
@@ -184,9 +184,9 @@ Q: close current game\nEsc: close all games\nI: open help menu")
                         change()
                         win2.destroy()
                     else:
-                        messagebox.showerror("Invalid value")
+                        messagebox.showerror("Error", "Invalid value")
                 except ValueError:
-                    messagebox.showerror("Invalid value")
+                    messagebox.showerror("Error", "Invalid value")
 
             submit = Button(win2, text="Submit", command=undo)
             submit.grid()
