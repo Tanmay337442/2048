@@ -1,4 +1,6 @@
-from tkinter import (Button, Entry, Grid, IntVar, Label, Menu, Radiobutton, Tk,
+# 2048 github link: https://github.com/Tanmay337442/2048
+
+from tkinter import (Button, Entry, IntVar, Label, Menu, Radiobutton, Tk,
                      Toplevel, messagebox)
 import game
 
