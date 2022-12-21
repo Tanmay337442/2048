@@ -61,7 +61,7 @@ Q: close current game\nEsc: close all games\nI: open help menu")
         win.geometry(f'{416}x{400}+{x}+{y}')
         win.config(bg="#bbada0")
 
-        # set relative size of cells - allows squares to be resizeable
+        # set relative size of rows/cols used by squares - allows squares to be resizeable
         win.rowconfigure(0, weight=1)
         win.columnconfigure(0, weight=1)
         win.rowconfigure(1, weight=1)
@@ -137,6 +137,7 @@ Q: close current game\nEsc: close all games\nI: open help menu")
                     squaremat[x].append(square)
             change()
 
+        # configure square colours based on light/dark mode
         def change():
             choice = mode.get()
             if choice == 1:
@@ -155,9 +156,11 @@ Q: close current game\nEsc: close all games\nI: open help menu")
                             squaremat[x][y].config(text=str(num), bg="#000000", fg="#333333")
                         else:
                             squaremat[x][y].config(text="", bg="#111111")
+            # update points and highscore labels
             showpts.config(text=pts)
             showhigh.config(text=highscore)
 
+        # create window to enter number of steps to undo
         def undoinput():
             win2 = Toplevel()
             win2.title("Undo")
@@ -166,6 +169,7 @@ Q: close current game\nEsc: close all games\nI: open help menu")
             undolabel.grid()
             steps.grid()
 
+            # go back by entered number of steps - changes highscore, matrix, previous matrices
             def undo():
                 nonlocal past_matrices, matrix, pts, highscore
                 try:
@@ -174,6 +178,7 @@ Q: close current game\nEsc: close all games\nI: open help menu")
                         matrix = past_matrices[-1][0]
                         pts = past_matrices[-1][1]
                         highscore = past_matrices[-1][2]
+                        # update colours
                         change()
                         win2.destroy()
                     else:
@@ -185,6 +190,7 @@ Q: close current game\nEsc: close all games\nI: open help menu")
             submit.grid()
             win2.mainloop()
         
+        # sets highscore to 0 in txt file, updates highscore variable
         def clearhigh():
             nonlocal highscore
             open('highscorefile.txt', 'w').write('0')
@@ -217,37 +223,44 @@ Q: close current game\nEsc: close all games\nI: open help menu")
             "n": newgame, # create new game
             "r": reset, # reset current game
             "c": clearhigh, # set high score to 0
-            "u": undoinput,
-            "i": intro
+            "u": undoinput, # undo moves
+            "i": intro # get instructions for game
         }
 
+        # tell program what to do after keyboard event occurs
         def keypress(event):
             nonlocal matrix, pts, highscore
             if event.keysym in movekeys:
+                # if movement key pressed, test move on temporary matrix
+                # if matrix is changed, move is valid
                 future = movekeys[event.keysym](matrix)
                 if future[0] != matrix:
                     matrix_pts = movekeys[event.keysym](matrix)
                     matrix = matrix_pts[0]
                     pts += matrix_pts[1]
+                    # set highscore if points have exceeded highscore
                     if pts > highscore:
                         highscore = pts
+                    # add matrix to history
                     past_matrices.append([matrix, pts, highscore])
                     matrix = game.addnum(matrix)
+                    # update squares
                     change()
+                # test for win/loss after move is made
                 if game.state(matrix) == 'loss':
                     messagebox.showinfo(title="Uh-oh!", message="You lost!")
                 elif game.state(matrix) == 'win':
                     messagebox.showinfo(title="Yay!", message="You won!")
+            # run function if key pressed to perform other function
             elif event.keysym in otherkeys:
                 if event.keysym != "Escape":
                     otherkeys[event.keysym]()
                 else:
-                    try:
-                        if highscore > int(open('highscorefile.txt').read()):
-                            open('highscorefile.txt', 'w').write(str(highscore))
-                    except:
-                        open('highscorefile.txt', 'w').write(str(highscore))
+                    # escape quits game - highscore must be saved first
+                    # write highscore to txt if higher than previous
+                    open('highscorefile.txt', 'w').write(str(highscore))
                     open('highscorefile.txt').close()
+                    # quit
                     otherkeys[event.keysym]()
 
 
@@ -264,20 +277,24 @@ Q: close current game\nEsc: close all games\nI: open help menu")
         menubar.add_command(label="Help", command=intro)
         win.config(menu=menubar)
 
+        # update squares with numbers before game starts
         change()
 
+        # bind all keyboard events to keypress function
         win.bind("<Key>", keypress)
+        # move current window to top
+        # instructions opened before first window - first window must therefore be in focus
         win.focus_force()
         win.mainloop()
 
-        try:
-            if highscore > int(open('highscorefile.txt').read()):
-                open('highscorefile.txt', 'w').write(str(highscore))
-        except:
-            open('highscorefile.txt', 'w').write(str(highscore))
+        # write highscore to txt on window destruction
+        open('highscorefile.txt', 'w').write(str(highscore))
         open('highscorefile.txt').close()
-        
+    
+    # show keybinds
     intro()
+    # open first window
     newgame()
 
+# run program
 main()
